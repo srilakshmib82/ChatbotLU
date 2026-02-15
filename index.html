@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot LU Module</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .chatbox {
+            width: 450px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 12px gray;
+        }
+        .messages {
+            height: 350px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .user {
+            text-align: right;
+            color: blue;
+            margin: 5px;
+        }
+        .bot {
+            text-align: left;
+            color: green;
+            margin: 5px;
+        }
+        input {
+            width: 75%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #aaa;
+        }
+        button {
+            width: 20%;
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        button:hover {
+            background: darkgreen;
+        }
+        .info {
+            font-size: 12px;
+            color: gray;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chatbox">
+    <h2>Chatbot Language Understanding</h2>
+
+    <div class="messages" id="messages"></div>
+
+    <input type="text" id="userInput" placeholder="Type message..." />
+    <button onclick="sendMessage()">Send</button>
+
+    <div class="info" id="info"></div>
+</div>
+
+<script>
+    async function sendMessage() {
+        let input = document.getElementById("userInput");
+        let message = input.value;
+
+        if (message.trim() === "") return;
+
+        let messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML += `<div class="user"><b>You:</b> ${message}</div>`;
+
+        input.value = "";
+
+        let response = await fetch("http://127.0.0.1:5000/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: message })
+        });
+
+        let data = await response.json();
+
+        messagesDiv.innerHTML += `<div class="bot"><b>Bot:</b> ${data.response}</div>`;
+
+        document.getElementById("info").innerHTML =
+            `Intent: <b>${data.intent}</b> | Confidence: <b>${data.confidence.toFixed(2)}</b><br>
+             POS Tags: ${JSON.stringify(data.pos_tags)}`;
+
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
