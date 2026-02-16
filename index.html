@@ -4,73 +4,140 @@
     <title>Chatbot LU Module</title>
     <style>
         body {
-            font-family: Arial;
-            background: #f4f4f4;
+            font-family: "Poppins", Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #9face6);
             display: flex;
             justify-content: center;
-            margin-top: 40px;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
+
         .chatbox {
-            width: 450px;
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0px 0px 12px gray;
+            width: 500px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeIn 1s ease-in-out;
         }
+
+        h2 {
+            text-align: center;
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+        }
+
         .messages {
             height: 350px;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0px 0px 8px rgba(0,0,0,0.1);
         }
+
         .user {
             text-align: right;
-            color: blue;
-            margin: 5px;
+            margin: 8px 0;
+            padding: 10px;
+            display: inline-block;
+            border-radius: 12px;
+            background: rgba(0, 123, 255, 0.75);
+            color: white;
+            max-width: 75%;
+            animation: slideRight 0.4s ease;
         }
+
         .bot {
             text-align: left;
-            color: green;
-            margin: 5px;
+            margin: 8px 0;
+            padding: 10px;
+            display: inline-block;
+            border-radius: 12px;
+            background: rgba(40, 167, 69, 0.75);
+            color: white;
+            max-width: 75%;
+            animation: slideLeft 0.4s ease;
         }
+
+        .input-area {
+            display: flex;
+            margin-top: 12px;
+            gap: 8px;
+        }
+
         input {
-            width: 75%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #aaa;
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255,255,255,0.7);
         }
+
         button {
-            width: 20%;
-            padding: 10px;
-            background: green;
+            width: 90px;
+            padding: 12px;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
             border: none;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: 0.3s;
         }
+
         button:hover {
-            background: darkgreen;
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #20c997, #28a745);
         }
+
         .info {
-            font-size: 12px;
-            color: gray;
-            margin-top: 8px;
+            font-size: 13px;
+            color: #fff;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.25);
+            box-shadow: inset 0px 0px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {opacity: 0; transform: scale(0.9);}
+            to {opacity: 1; transform: scale(1);}
+        }
+
+        @keyframes slideRight {
+            from {opacity: 0; transform: translateX(50px);}
+            to {opacity: 1; transform: translateX(0);}
+        }
+
+        @keyframes slideLeft {
+            from {opacity: 0; transform: translateX(-50px);}
+            to {opacity: 1; transform: translateX(0);}
         }
     </style>
 </head>
 <body>
 
 <div class="chatbox">
-    <h2>Chatbot Language Understanding</h2>
+    <h2>🤖 Chatbot Language Understanding</h2>
 
     <div class="messages" id="messages"></div>
 
-    <input type="text" id="userInput" placeholder="Type message..." />
-    <button onclick="sendMessage()">Send</button>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Type your message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
-    <div class="info" id="info"></div>
+    <div class="info" id="info">✨ Intent, Confidence & POS tags will appear here...</div>
 </div>
 
 <script>
@@ -81,26 +148,39 @@
         if (message.trim() === "") return;
 
         let messagesDiv = document.getElementById("messages");
-        messagesDiv.innerHTML += `<div class="user"><b>You:</b> ${message}</div>`;
 
+        messagesDiv.innerHTML += `<div class="user"><b>You:</b> ${message}</div>`;
         input.value = "";
 
-        let response = await fetch("http://127.0.0.1:5000/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: message })
-        });
+        try {
+            let response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            });
 
-        let data = await response.json();
+            let data = await response.json();
 
-        messagesDiv.innerHTML += `<div class="bot"><b>Bot:</b> ${data.response}</div>`;
+            messagesDiv.innerHTML += `<div class="bot"><b>Bot:</b> ${data.response}</div>`;
 
-        document.getElementById("info").innerHTML =
-            `Intent: <b>${data.intent}</b> | Confidence: <b>${data.confidence.toFixed(2)}</b><br>
-             POS Tags: ${JSON.stringify(data.pos_tags)}`;
+            document.getElementById("info").innerHTML =
+                `🎯 Intent: <b>${data.intent}</b> <br>
+                 🔥 Confidence: <b>${data.confidence.toFixed(2)}</b> <br>
+                 🏷 POS Tags: ${JSON.stringify(data.pos_tags)}`;
 
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        } catch (error) {
+            messagesDiv.innerHTML += `<div class="bot"><b>Bot:</b> ❌ Server error. Try again later.</div>`;
+        }
     }
+
+    // Enter key support
+    document.getElementById("userInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
 </script>
 
 </body>
